@@ -1,3 +1,6 @@
+# Keeps the original project name so the existing pgdata volume is reused.
+name: job-radar
+
 services:
   db:
     image: postgres:17-alpine

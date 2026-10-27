@@ -1,6 +1,6 @@
 mod config;
-mod db;
 mod filter;
+mod infra;
 mod sources;
 
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -20,6 +20,7 @@ use tower_http::services::{ServeDir, ServeFile};
 
 use crate::config::Config;
 use crate::filter::Matcher;
+use crate::infra::db;
 
 struct AppState {
     pool: PgPool,

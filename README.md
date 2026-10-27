@@ -4,6 +4,18 @@ Rust backend for [personal-job-dash](https://github.com/jmoranj/personal-job-das
 
 Built with axum, sqlx, reqwest and Postgres (in Docker).
 
+## Layout
+
+| Path | What |
+|---|---|
+| `src/main.rs` | HTTP API, background refresh loop |
+| `src/sources.rs` | One fetcher per job board, mapped to a common shape |
+| `src/filter.rs` | Brazil eligibility rules and match scoring |
+| `src/config.rs` | Loads `config.toml` |
+| `src/infra/db.rs` | Postgres adapter (sqlx queries) |
+| `infra/compose.yml` | Local Postgres in Docker |
+| `migrations/` | SQL schema |
+
 ## Run
 
 Clone both repos side by side:
@@ -19,7 +31,7 @@ cp .env.example .env
 ```
 
 ```bash
-docker compose up -d
+docker compose -f infra/compose.yml up -d
 ```
 
 ```bash
