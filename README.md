@@ -11,6 +11,7 @@ Built with axum, sqlx, reqwest and Postgres (in Docker).
 | `src/main.rs` | HTTP API, background refresh loop |
 | `src/sources.rs` | One fetcher per job board, mapped to a common shape |
 | `src/filter.rs` | Brazil eligibility rules and match scoring |
+| `src/discovery.rs` | Finds company career boards to watch |
 | `src/config.rs` | Loads `config.toml` |
 | `src/infra/db.rs` | Postgres adapter (sqlx queries) |
 | `infra/compose.yml` | Local Postgres in Docker |
@@ -48,6 +49,8 @@ The API listens on http://localhost:8787. It also serves the built dashboard fro
 | PATCH | `/api/jobs/{id}` | Body `{ "status"?, "notes"? }`. Status is one of new, saved, applied, interviewing, offer, rejected, dismissed. |
 | GET | `/api/stats` | Counts per status, jobs new in the last 24h, and the latest run per source. |
 | POST | `/api/refresh` | Starts a search of all sources now. |
+| GET | `/api/companies` | Company career boards being watched, with their last result. |
+| POST | `/api/discover` | Looks for new company boards now (also runs daily). |
 
 ## Tune it
 
@@ -55,11 +58,21 @@ Edit `config.toml` and restart:
 
 - `title_keywords` / `exclude_title`: which titles count as your kind of role.
 - `profile.skills`: skill → weight. This drives the Match score.
-- `companies`: Greenhouse, Lever and Ashby board slugs to watch directly.
+- `companies`: Greenhouse, Lever and Ashby boards that are always watched, on top of the ones discovery finds.
+
+## Company discovery
+
+Small and medium companies post on their own ATS pages, not LinkedIn. Discovery finds those pages so the search can watch them:
+
+1. **Job links:** ATS links (Greenhouse, Lever, Ashby, Workable, Recruitee, Teamtailor, Personio) found in jobs already fetched.
+2. **Directories:** [remoteintech](https://remoteintech.company) companies hiring worldwide or in the Americas, and Y Combinator companies that are hiring remotely ([yc-oss](https://github.com/yc-oss/api)).
+3. **Probing:** for directory names without a known page, slug guesses are tried on Greenhouse, Lever, Ashby and Workable. A page counts only if it has at least one open job. Misses are retried after 30 days.
+
+Discovery runs a minute after start-up, then daily, and starts a new search when it adds pages. A page with no matching roles for 30 days stops being watched. The first run found about 410 pages.
 
 ## Sources
 
-Remotive, Remote OK, Himalayas, Jobicy, We Work Remotely, Arbeitnow, Hacker News "Who is hiring?", and the company boards in the config. Remote OK, Jobicy and Remotive ask for attribution. Every job links back to its original posting.
+Remotive, Remote OK, Himalayas, Jobicy, We Work Remotely, Arbeitnow, Hacker News "Who is hiring?", the company boards in the config, and every board discovery adds. Remote OK, Jobicy and Remotive ask for attribution. Every job links back to its original posting.
 
 ## Brazil filter
 

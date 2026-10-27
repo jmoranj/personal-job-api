@@ -35,7 +35,8 @@ kubernetes = 1
 postgres = 1
 backend = 2
 
-# Company career boards to watch directly (the slug from the board URL).
+# Company boards always watched (the slug from the board URL). Discovery adds
+# hundreds more automatically; see them in the dashboard under Companies.
 [companies]
 greenhouse = ["gitlab", "vercel", "anthropic", "elastic"]
 lever = ["mistral", "toptal", "palantir"]

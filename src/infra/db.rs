@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool, Postgres, QueryBuilder};
 
 use crate::filter::Verdict;
-use crate::sources::RawJob;
+use crate::sources::{Board, RawJob};
 
 pub const STATUSES: &[&str] = &["new", "saved", "applied", "interviewing", "offer", "rejected", "dismissed"];
 
@@ -177,4 +177,148 @@ pub async fn record_run(pool: &PgPool, source: &str, started: DateTime<Utc>, fet
         .execute(pool)
         .await?;
     Ok(())
+}
+
+// ---- Company boards -------------------------------------------------------
+
+/// URLs and descriptions of every stored job, for harvesting ATS links.
+pub async fn job_link_text(pool: &PgPool) -> sqlx::Result<String> {
+    sqlx::query_scalar("SELECT coalesce(string_agg(url || ' ' || description, ' '), '') FROM jobs")
+        .fetch_one(pool)
+        .await
+}
+
+/// Returns true when the board was new.
+pub async fn add_company(pool: &PgPool, ats: &str, slug: &str, name: &str, origin: &str) -> sqlx::Result<bool> {
+    let r = sqlx::query(
+        "INSERT INTO companies (ats, slug, name, origin) VALUES ($1, $2, $3, $4)
+         ON CONFLICT (ats, slug) DO UPDATE SET name = CASE WHEN companies.name = '' THEN EXCLUDED.name ELSE companies.name END
+         RETURNING (xmax = 0) AS inserted",
+    )
+    .bind(ats)
+    .bind(slug)
+    .bind(name)
+    .bind(origin)
+    .fetch_one(pool)
+    .await?;
+    Ok(sqlx::Row::get(&r, "inserted"))
+}
+
+pub fn candidate_key(name: &str) -> String {
+    name.to_lowercase().chars().filter(|c| c.is_alphanumeric()).collect()
+}
+
+/// Returns true when the candidate was new.
+pub async fn add_candidate(pool: &PgPool, name: &str, slug_hint: &str, origin: &str) -> sqlx::Result<bool> {
+    let key = candidate_key(name);
+    if key.len() < 2 {
+        return Ok(false);
+    }
+    let r = sqlx::query("INSERT INTO company_candidates (key, name, slug_hint, origin) VALUES ($1, $2, $3, $4) ON CONFLICT (key) DO NOTHING")
+        .bind(key)
+        .bind(name)
+        .bind(slug_hint)
+        .bind(origin)
+        .execute(pool)
+        .await?;
+    Ok(r.rows_affected() == 1)
+}
+
+#[derive(Debug, FromRow)]
+pub struct Candidate {
+    pub key: String,
+    pub name: String,
+    pub slug_hint: String,
+}
+
+pub async fn candidates_to_probe(pool: &PgPool, limit: i64) -> sqlx::Result<Vec<Candidate>> {
+    sqlx::query_as(
+        "SELECT key, name, slug_hint FROM company_candidates
+         WHERE probed_at IS NULL OR (NOT found AND probed_at < now() - interval '30 days')
+         ORDER BY probed_at NULLS FIRST LIMIT $1",
+    )
+    .bind(limit)
+    .fetch_all(pool)
+    .await
+}
+
+pub async fn mark_probed(pool: &PgPool, key: &str, found: bool) -> sqlx::Result<()> {
+    sqlx::query("UPDATE company_candidates SET probed_at = now(), found = $2 WHERE key = $1")
+        .bind(key)
+        .bind(found)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+pub async fn active_boards(pool: &PgPool) -> sqlx::Result<Vec<Board>> {
+    let rows: Vec<(String, String, String)> = sqlx::query_as("SELECT ats, slug, name FROM companies WHERE active ORDER BY ats, slug")
+        .fetch_all(pool)
+        .await?;
+    Ok(rows.into_iter().map(|(ats, slug, name)| Board { ats, slug, name }).collect())
+}
+
+/// Records one fetch of a board. Boards with no matching roles for 30 days stop being watched.
+pub async fn record_board_check(pool: &PgPool, b: &Board, jobs: usize, kept: usize, error: Option<String>) -> sqlx::Result<()> {
+    sqlx::query(
+        "UPDATE companies SET
+           last_checked = now(),
+           last_jobs = $3,
+           last_kept = $4,
+           error = $5,
+           empty_since = CASE WHEN $4 > 0 THEN NULL ELSE coalesce(empty_since, now()) END,
+           active = NOT ($4 = 0 AND coalesce(empty_since, now()) < now() - interval '30 days')
+         WHERE ats = $1 AND slug = $2",
+    )
+    .bind(&b.ats)
+    .bind(&b.slug)
+    .bind(jobs as i32)
+    .bind(kept as i32)
+    .bind(error)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+#[derive(Debug, Serialize, FromRow)]
+pub struct Company {
+    pub ats: String,
+    pub slug: String,
+    pub name: String,
+    pub origin: String,
+    pub active: bool,
+    pub added_at: DateTime<Utc>,
+    pub last_checked: Option<DateTime<Utc>>,
+    pub last_jobs: i32,
+    pub last_kept: i32,
+    pub error: Option<String>,
+}
+
+pub async fn list_companies(pool: &PgPool) -> sqlx::Result<Vec<Company>> {
+    sqlx::query_as(
+        "SELECT ats, slug, name, origin, active, added_at, last_checked, last_jobs, last_kept, error
+         FROM companies ORDER BY active DESC, last_kept DESC, name, slug",
+    )
+    .fetch_all(pool)
+    .await
+}
+
+#[derive(Debug, Default, Serialize, FromRow)]
+pub struct CompanySummary {
+    pub watched: i64,
+    pub with_matches: i64,
+    pub failing: i64,
+    pub candidates_left: i64,
+}
+
+pub async fn company_summary(pool: &PgPool) -> sqlx::Result<CompanySummary> {
+    sqlx::query_as(
+        "SELECT
+           (SELECT count(*) FROM companies WHERE active) AS watched,
+           (SELECT count(*) FROM companies WHERE active AND last_kept > 0) AS with_matches,
+           (SELECT count(*) FROM companies WHERE active AND error IS NOT NULL) AS failing,
+           (SELECT count(*) FROM company_candidates WHERE probed_at IS NULL) AS candidates_left",
+    )
+    .fetch_one(pool)
+    .await
 }

@@ -7,7 +7,7 @@ use regex::Regex;
 use reqwest::Client;
 use serde_json::Value;
 
-use crate::config::Companies;
+use futures::{FutureExt, StreamExt};
 
 #[derive(Debug, Clone)]
 pub struct RawJob {
@@ -24,7 +24,54 @@ pub struct RawJob {
 
 pub struct SourceResult {
     pub source: String,
+    /// Set when the result came from one company's career board.
+    pub board: Option<Board>,
     pub jobs: anyhow::Result<Vec<RawJob>>,
+}
+
+/// One company's career board on an applicant tracking system.
+#[derive(Debug, Clone)]
+pub struct Board {
+    pub ats: String,
+    pub slug: String,
+    pub name: String,
+}
+
+/// ATS names as stored in the database, in the order discovery probes them.
+pub const PROBED_ATS: &[&str] = &["greenhouse", "lever", "ashby", "workable"];
+
+pub fn ats_label(ats: &str) -> &'static str {
+    match ats {
+        "greenhouse" => "Greenhouse",
+        "lever" => "Lever",
+        "ashby" => "Ashby",
+        "workable" => "Workable",
+        "recruitee" => "Recruitee",
+        "teamtailor" => "Teamtailor",
+        "personio" => "Personio",
+        _ => "Company board",
+    }
+}
+
+pub async fn fetch_board(c: &Client, b: &Board) -> anyhow::Result<Vec<RawJob>> {
+    let name = if b.name.is_empty() { b.slug.clone() } else { b.name.clone() };
+    let mut jobs = match b.ats.as_str() {
+        "greenhouse" => greenhouse(c, b.slug.clone()).await?,
+        "lever" => lever(c, b.slug.clone()).await?,
+        "ashby" => ashby(c, b.slug.clone()).await?,
+        "workable" => workable(c, &b.slug).await?,
+        "recruitee" => recruitee(c, &b.slug).await?,
+        "teamtailor" => teamtailor(c, &b.slug).await?,
+        "personio" => personio(c, &b.slug).await?,
+        other => anyhow::bail!("unsupported ATS {other}"),
+    };
+    // Lever and Ashby don't return the company name; use the one discovery recorded.
+    for j in &mut jobs {
+        if j.company.is_empty() || j.company == b.slug {
+            j.company = name.clone();
+        }
+    }
+    Ok(jobs)
 }
 
 const DESCRIPTION_LIMIT: usize = 6000;
@@ -83,44 +130,53 @@ fn money(min: Option<f64>, max: Option<f64>, currency: &str) -> Option<String> {
     }
 }
 
+/// GET a JSON document, backing off and retrying when the host rate-limits (Workable does at ~16 parallel calls).
 async fn json(client: &Client, url: &str) -> anyhow::Result<Value> {
+    let mut wait = std::time::Duration::from_secs(2);
+    for _ in 0..3 {
+        let res = client.get(url).send().await?;
+        if res.status() != reqwest::StatusCode::TOO_MANY_REQUESTS {
+            return Ok(res.error_for_status()?.json().await?);
+        }
+        tokio::time::sleep(wait).await;
+        wait *= 3;
+    }
     Ok(client.get(url).send().await?.error_for_status()?.json().await?)
 }
 
-pub async fn fetch_all(client: &Client, companies: &Companies) -> Vec<SourceResult> {
-    let mut tasks: Vec<std::pin::Pin<Box<dyn std::future::Future<Output = SourceResult> + Send + '_>>> = vec![
-        Box::pin(run("Remotive", remotive(client))),
-        Box::pin(run("Remote OK", remoteok(client))),
-        Box::pin(run("Himalayas", himalayas(client))),
-        Box::pin(run("Jobicy", jobicy(client))),
-        Box::pin(run("We Work Remotely", wwr(client))),
-        Box::pin(run("Arbeitnow", arbeitnow(client))),
-        Box::pin(run("Hacker News", hackernews(client))),
-    ];
-    for slug in &companies.greenhouse {
-        tasks.push(Box::pin(run_owned(format!("Greenhouse: {slug}"), greenhouse(client, slug.clone()))));
-    }
-    for slug in &companies.lever {
-        tasks.push(Box::pin(run_owned(format!("Lever: {slug}"), lever(client, slug.clone()))));
-    }
-    for slug in &companies.ashby {
-        tasks.push(Box::pin(run_owned(format!("Ashby: {slug}"), ashby(client, slug.clone()))));
-    }
-    futures::future::join_all(tasks).await
+/// How many company boards are fetched at the same time.
+const BOARD_CONCURRENCY: usize = 16;
+
+pub async fn fetch_all(client: &Client, boards: &[Board]) -> Vec<SourceResult> {
+    let job_boards = futures::future::join_all(vec![
+        run("Remotive", None, remotive(client)).boxed(),
+        run("Remote OK", None, remoteok(client)).boxed(),
+        run("Himalayas", None, himalayas(client)).boxed(),
+        run("Jobicy", None, jobicy(client)).boxed(),
+        run("We Work Remotely", None, wwr(client)).boxed(),
+        run("Arbeitnow", None, arbeitnow(client)).boxed(),
+        run("Hacker News", None, hackernews(client)).boxed(),
+    ]);
+    let company_boards = futures::stream::iter(boards.iter().cloned())
+        .map(|b| async move {
+            let name = format!("{}: {}", ats_label(&b.ats), if b.name.is_empty() { &b.slug } else { &b.name });
+            run(&name, Some(b.clone()), fetch_board(client, &b)).await
+        })
+        .buffer_unordered(BOARD_CONCURRENCY)
+        .collect::<Vec<_>>();
+    let (mut out, companies) = futures::join!(job_boards, company_boards);
+    out.extend(companies);
+    out
 }
 
-async fn run(name: &str, f: impl std::future::Future<Output = anyhow::Result<Vec<RawJob>>>) -> SourceResult {
-    run_owned(name.to_string(), f).await
-}
-
-async fn run_owned(name: String, f: impl std::future::Future<Output = anyhow::Result<Vec<RawJob>>>) -> SourceResult {
+async fn run(name: &str, board: Option<Board>, f: impl std::future::Future<Output = anyhow::Result<Vec<RawJob>>>) -> SourceResult {
     let jobs = f.await.map(|mut v| {
         for j in &mut v {
-            j.source = name.clone();
+            j.source = name.to_string();
         }
         v
     });
-    SourceResult { source: name, jobs }
+    SourceResult { source: name.to_string(), board, jobs }
 }
 
 fn job(title: String, company: String, url: String, location: String) -> RawJob {
@@ -364,6 +420,106 @@ async fn ashby(c: &Client, slug: String) -> anyhow::Result<Vec<RawJob>> {
                 posted_at: rfc3339(&s(j, "publishedAt")),
                 description: plain(&s(j, "descriptionPlain")),
                 ..job(s(j, "title"), slug.clone(), s(j, "jobUrl"), places.join(", "))
+            }
+        })
+        .collect())
+}
+
+async fn workable(c: &Client, slug: &str) -> anyhow::Result<Vec<RawJob>> {
+    let v = json(c, &format!("https://apply.workable.com/api/v1/widget/accounts/{slug}")).await?;
+    let company = s(&v, "name");
+    Ok(v["jobs"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .map(|j| {
+            let mut places: Vec<String> = j["locations"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .map(|l| [s(l, "city"), s(l, "country")].into_iter().filter(|x| !x.is_empty()).collect::<Vec<_>>().join(", "))
+                .filter(|p| !p.is_empty())
+                .collect();
+            if j["telecommuting"].as_bool() == Some(true) {
+                places.insert(0, "Remote".into());
+            }
+            RawJob {
+                tags: [s(j, "department"), s(j, "function"), s(j, "employment_type")].into_iter().filter(|x| !x.is_empty()).collect(),
+                posted_at: chrono::NaiveDate::parse_from_str(&s(j, "published_on"), "%Y-%m-%d").ok().and_then(|d| d.and_hms_opt(0, 0, 0)).map(|d| d.and_utc()),
+                ..job(s(j, "title"), company.clone(), s(j, "url"), places.join(" · "))
+            }
+        })
+        .collect())
+}
+
+async fn recruitee(c: &Client, slug: &str) -> anyhow::Result<Vec<RawJob>> {
+    let v = json(c, &format!("https://{slug}.recruitee.com/api/offers/")).await?;
+    Ok(v["offers"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .map(|j| {
+            let mut location = s(j, "location");
+            if j["remote"].as_bool() == Some(true) {
+                location = format!("Remote · {location}");
+            }
+            RawJob {
+                tags: str_list(j, "tags"),
+                posted_at: chrono::NaiveDateTime::parse_from_str(s(j, "published_at").trim_end_matches(" UTC"), "%Y-%m-%d %H:%M:%S").ok().map(|n| n.and_utc()),
+                description: plain(&format!("{} {}", s(j, "description"), s(j, "requirements"))),
+                ..job(s(j, "title"), s(j, "company_name"), s(j, "careers_url"), location)
+            }
+        })
+        .collect())
+}
+
+async fn teamtailor(c: &Client, slug: &str) -> anyhow::Result<Vec<RawJob>> {
+    let body = c.get(format!("https://{slug}.teamtailor.com/jobs.rss")).send().await?.error_for_status()?.text().await?;
+    anyhow::ensure!(body.contains("<rss"), "no job feed");
+    let company = unescape(&xml_field(&body, "title"));
+    Ok(ITEM_RE
+        .captures_iter(&body)
+        .map(|cap| {
+            let item = &cap[1];
+            let mut places: Vec<String> = Regex::new(r"(?s)<tt:location>(.*?)</tt:location>")
+                .unwrap()
+                .captures_iter(item)
+                .map(|l| [xml_field(&l[1], "tt:city"), xml_field(&l[1], "tt:country")].into_iter().filter(|x| !x.is_empty()).collect::<Vec<_>>().join(", "))
+                .filter(|p| !p.is_empty())
+                .collect();
+            if xml_field(item, "remoteStatus") == "fully" {
+                places.insert(0, "Remote".into());
+            }
+            RawJob {
+                tags: vec![xml_field(item, "tt:department")].into_iter().filter(|x| !x.is_empty()).collect(),
+                posted_at: DateTime::parse_from_rfc2822(&xml_field(item, "pubDate")).ok().map(|d| d.with_timezone(&Utc)),
+                description: plain(&xml_field(item, "description")),
+                ..job(unescape(&xml_field(item, "title")), company.clone(), xml_field(item, "link"), places.join(" · "))
+            }
+        })
+        .collect())
+}
+
+async fn personio(c: &Client, slug: &str) -> anyhow::Result<Vec<RawJob>> {
+    let body = c.get(format!("https://{slug}.jobs.personio.de/xml")).send().await?.error_for_status()?.text().await?;
+    anyhow::ensure!(body.contains("<workzag-jobs"), "no job feed");
+    let positions = Regex::new(r"(?s)<position>(.*?)</position>").unwrap();
+    let offices = Regex::new(r"(?s)<office>(.*?)</office>").unwrap();
+    Ok(positions
+        .captures_iter(&body)
+        .map(|cap| {
+            let p = &cap[1];
+            let places: Vec<String> = offices.captures_iter(p).map(|o| unescape(o[1].trim())).collect();
+            RawJob {
+                tags: [xml_field(p, "department"), xml_field(p, "recruitingCategory")].into_iter().filter(|x| !x.is_empty()).collect(),
+                posted_at: rfc3339(&xml_field(p, "createdAt")),
+                description: plain(&xml_field(p, "jobDescriptions").replace("<![CDATA[", "").replace("]]>", "")),
+                ..job(
+                    unescape(&xml_field(p, "name")),
+                    unescape(&xml_field(p, "subcompany")),
+                    format!("https://{slug}.jobs.personio.de/job/{}", xml_field(p, "id")),
+                    places.join(" · "),
+                )
             }
         })
         .collect())
