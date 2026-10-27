@@ -1,0 +1,42 @@
+# How often the background refresh runs.
+refresh_hours = 4
+
+[profile]
+# A job is kept only if its title contains one of these.
+title_keywords = [
+  "engineer", "developer", "software", "backend", "back-end", "full stack", "fullstack",
+  "full-stack", "ai", "ml", "machine learning", "llm", "platform", "devops", "sre", "data engineer",
+]
+# Titles containing any of these are dropped.
+exclude_title = [
+  "sales", "marketing", "account executive", "recruiter", "designer", "support",
+  "customer success", "intern", "trainer", "annotation", "writer", "hardware", "mechanical",
+]
+# Seniority words that earn a bonus when they appear in the title.
+seniority = ["senior", "sr", "staff", "lead"]
+
+# Skill -> weight. Found in title counts double; found in tags or description counts once.
+[profile.skills]
+python = 3
+rust = 3
+typescript = 2
+"node" = 2
+react = 1
+go = 2
+llm = 4
+"machine learning" = 3
+"generative ai" = 3
+rag = 3
+"ai engineer" = 5
+pytorch = 2
+aws = 2
+gcp = 1
+kubernetes = 1
+postgres = 1
+backend = 2
+
+# Company career boards to watch directly (the slug from the board URL).
+[companies]
+greenhouse = ["gitlab", "vercel", "anthropic", "elastic"]
+lever = ["mistral", "toptal", "palantir"]
+ashby = ["deel", "posthog", "supabase", "linear", "replit"]
