@@ -1,5 +1,7 @@
+mod ai;
 mod config;
 mod discovery;
+mod eval;
 mod filter;
 mod infra;
 mod sources;
@@ -58,6 +60,11 @@ async fn main() -> anyhow::Result<()> {
         .user_agent("job-radar/0.1 (personal job search)")
         .timeout(Duration::from_secs(45))
         .build()?;
+
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.first().map(String::as_str) == Some("eval") {
+        return eval::main(&args[1..], pool, client).await;
+    }
 
     let state = Arc::new(AppState {
         pool,

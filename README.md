@@ -81,3 +81,15 @@ Each job gets one label, decided in `src/filter.rs`:
 - **yes:** the location names Brazil, LATAM, the Americas or worldwide, or the description clearly says so.
 - **maybe:** remote, with no country rule stated.
 - **no:** restricted to other countries, or the posting says something like "US only" or "authorized to work in the US".
+
+## Eligibility eval (rules vs Claude)
+
+The keyword rules leave many jobs as "maybe". `src/ai.rs` asks Claude (`claude-opus-5-5`, low effort, JSON-schema output, cached system prompt) to decide those. Before it is switched on, it is measured against hand labels:
+
+```bash
+cargo run -- eval sample 150   # 50 each of rules-yes / maybe / no -> evals/eligibility.jsonl
+cargo run -- eval label        # label in the terminal: y / m / n, d = full text, s = skip, q = save and quit
+cargo run -- eval run          # needs ANTHROPIC_API_KEY in .env; writes evals/REPORT.md
+```
+
+The report compares keyword rules, Claude alone, and rules + Claude on "maybe" by accuracy, "yes" precision and recall, jobs wrongly hidden as "no", and cost per job. Claude's answers are cached in `evals/predictions-<model>.jsonl`, so re-running the report is free.
