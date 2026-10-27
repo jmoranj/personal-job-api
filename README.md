@@ -89,7 +89,16 @@ The keyword rules leave many jobs as "maybe". `src/ai.rs` asks Claude (`claude-o
 ```bash
 cargo run -- eval sample 150   # 50 each of rules-yes / maybe / no -> evals/eligibility.jsonl
 cargo run -- eval label        # label in the terminal: y / m / n, d = full text, s = skip, q = save and quit
-cargo run -- eval run          # needs ANTHROPIC_API_KEY in .env; writes evals/REPORT.md
+cargo run -- eval run          # writes evals/REPORT.md
 ```
+
+**Two ways to call Claude** (`src/ai.rs`):
+
+| Backend | Needs | Cost |
+|---|---|---|
+| `api` | `ANTHROPIC_API_KEY` in `.env` | Billed per token (~$0.02–0.04 per job on Opus 5.5) |
+| `claude-code` | Claude Code installed and logged in | Uses your Claude Code subscription limits; runs `claude -p` per job, slower |
+
+With a key it uses the API; without one it uses Claude Code. Force one with `LLM_BACKEND=api` or `LLM_BACKEND=claude-code`.
 
 The report compares keyword rules, Claude alone, and rules + Claude on "maybe" by accuracy, "yes" precision and recall, jobs wrongly hidden as "no", and cost per job. Claude's answers are cached in `evals/predictions-<model>.jsonl`, so re-running the report is free.

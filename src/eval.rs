@@ -163,7 +163,9 @@ async fn run(client: reqwest::Client) -> anyhow::Result<()> {
     if cases.is_empty() {
         bail!("no labeled jobs; run `eval label` first");
     }
-    let claude = Classifier::from_env(client).context("set ANTHROPIC_API_KEY in .env to run the Claude side")?;
+    let claude = Classifier::from_env(client)?;
+    // Claude Code runs one process per job; keep it gentle on the subscription limits.
+    let parallel = if claude.name().starts_with("Claude Code") { 2 } else { 4 };
 
     // Predictions are cached per model so re-running the report costs nothing.
     let cache_path = format!("evals/predictions-{}.jsonl", ai::MODEL);
@@ -175,21 +177,23 @@ async fn run(client: reqwest::Client) -> anyhow::Result<()> {
         .collect();
 
     let missing: Vec<&Case> = cases.iter().filter(|c| !cache.contains_key(&c.id)).collect();
-    println!("{} labeled jobs, {} need a Claude call", cases.len(), missing.len());
+    println!("{} labeled jobs, {} need a Claude call via {}", cases.len(), missing.len(), claude.name());
     let claude = &claude;
     let results: Vec<_> = stream::iter(missing)
         .map(|c| async move { (c.id.clone(), claude.classify(&c.title, &c.company, &c.location, &c.description).await) })
-        .buffer_unordered(4)
+        .buffer_unordered(parallel)
         .collect()
         .await;
 
     let mut usage = Usage::default();
     let mut failed = 0;
+    let mut called = 0;
     let mut file = std::fs::OpenOptions::new().create(true).append(true).open(&cache_path)?;
     for (id, r) in results {
         match r {
             Ok((v, u)) => {
                 usage.add(u);
+                called += 1;
                 let p = Prediction { id: id.clone(), eligibility: v.eligibility, reason: v.reason };
                 writeln!(file, "{}", serde_json::to_string(&p)?)?;
                 cache.insert(id, p);
@@ -219,7 +223,7 @@ async fn run(client: reqwest::Client) -> anyhow::Result<()> {
 
     let mut report = String::new();
     report.push_str(&format!("# Eligibility eval — {}\n\n", chrono::Utc::now().format("%Y-%m-%d")));
-    report.push_str(&format!("{} hand-labeled jobs. Model: `{}` (effort low).\n\n", cases.len(), ai::MODEL));
+    report.push_str(&format!("{} hand-labeled jobs. Model: `{}`, via {}.\n\n", cases.len(), ai::MODEL, claude.name()));
     report.push_str("| Classifier | Accuracy | \"Yes\" precision | \"Yes\" recall | Wrongly says \"no\" | Undecided (maybe) |\n|---|---|---|---|---|---|\n");
     for (name, pairs) in [("Keyword rules", &rules), ("Claude", &llm), ("Rules + Claude on maybe", &hybrid)] {
         report.push_str(&row(name, pairs));
@@ -239,13 +243,14 @@ async fn run(client: reqwest::Client) -> anyhow::Result<()> {
     }
     if usage.input + usage.output > 0 {
         report.push_str(&format!(
-            "\n## Cost of this run\n\n{} new calls, ${:.3} total, ${:.4} per job ({} input, {} cached, {} output tokens).\n",
-            cases.len().saturating_sub(failed),
-            usage.dollars(),
-            usage.dollars() / (cases.len().saturating_sub(failed)).max(1) as f64,
+            "\n## Cost of this run\n\n{} new calls, ${:.3} total, ${:.4} per job at API list price ({} input, {} cached, {} output tokens).{}\n",
+            called,
+            usage.dollars,
+            usage.dollars / called.max(1) as f64,
             usage.input,
             usage.cache_read,
-            usage.output
+            usage.output,
+            if claude.name().starts_with("Claude Code") { " Run through Claude Code, so it used subscription limits, not money." } else { "" }
         ));
     }
     if failed > 0 {
