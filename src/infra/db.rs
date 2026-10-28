@@ -17,6 +17,8 @@ pub struct Job {
     pub location: String,
     pub eligibility: String,
     pub eligibility_reason: String,
+    /// "claude" when Claude decided the eligibility, else "rules".
+    pub checked_by: String,
     pub tags: Vec<String>,
     pub salary: Option<String>,
     pub posted_at: Option<DateTime<Utc>>,
@@ -46,13 +48,17 @@ pub fn job_key(company: &str, title: &str) -> String {
 pub async fn upsert(pool: &PgPool, job: &RawJob, v: &Verdict) -> sqlx::Result<()> {
     sqlx::query(
         r#"INSERT INTO jobs (id, source, title, company, url, location, eligibility, eligibility_reason,
-                             tags, salary, posted_at, description, score, matched)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+                             tags, salary, posted_at, description, score, matched, rules_eligibility)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$7)
            ON CONFLICT (id) DO UPDATE SET
              last_seen = now(),
              location = EXCLUDED.location,
-             eligibility = EXCLUDED.eligibility,
-             eligibility_reason = EXCLUDED.eligibility_reason,
+             rules_eligibility = EXCLUDED.eligibility,
+             -- Keep Claude's answer while the rules still can't decide.
+             eligibility = CASE WHEN EXCLUDED.eligibility = 'maybe' AND jobs.llm_eligibility IS NOT NULL
+                                THEN jobs.llm_eligibility ELSE EXCLUDED.eligibility END,
+             eligibility_reason = CASE WHEN EXCLUDED.eligibility = 'maybe' AND jobs.llm_eligibility IS NOT NULL
+                                THEN jobs.llm_reason ELSE EXCLUDED.eligibility_reason END,
              tags = EXCLUDED.tags,
              salary = COALESCE(EXCLUDED.salary, jobs.salary),
              posted_at = COALESCE(EXCLUDED.posted_at, jobs.posted_at),
@@ -82,7 +88,9 @@ pub async fn upsert(pool: &PgPool, job: &RawJob, v: &Verdict) -> sqlx::Result<()
 
 pub async fn list(pool: &PgPool, f: &JobFilter) -> sqlx::Result<Vec<Job>> {
     let mut qb: QueryBuilder<Postgres> = QueryBuilder::new(
-        "SELECT id, source, title, company, url, location, eligibility, eligibility_reason, tags, salary,
+        "SELECT id, source, title, company, url, location, eligibility, eligibility_reason,
+                CASE WHEN rules_eligibility = 'maybe' AND llm_eligibility IS NOT NULL THEN 'claude' ELSE 'rules' END AS checked_by,
+                tags, salary,
                 posted_at, description, score, matched, status, notes, first_seen, status_changed_at
          FROM jobs WHERE 1=1",
     );
@@ -113,6 +121,64 @@ pub async fn list(pool: &PgPool, f: &JobFilter) -> sqlx::Result<Vec<Job>> {
     qb.push(" ORDER BY score DESC, posted_at DESC NULLS LAST LIMIT ")
         .push_bind(f.limit.unwrap_or(1000).clamp(1, 1000));
     qb.build_query_as().fetch_all(pool).await
+}
+
+/// A job the rules called "maybe" that Claude hasn't looked at yet.
+#[derive(Debug, FromRow)]
+pub struct Pending {
+    pub id: String,
+    pub title: String,
+    pub company: String,
+    pub location: String,
+    pub description: String,
+}
+
+/// Best-scoring first, so the jobs most worth seeing get decided first.
+pub async fn llm_pending(pool: &PgPool, limit: i64) -> sqlx::Result<Vec<Pending>> {
+    sqlx::query_as(
+        "SELECT id, title, company, location, description FROM jobs
+         WHERE rules_eligibility = 'maybe' AND llm_checked_at IS NULL AND status = 'new'
+         ORDER BY score DESC LIMIT $1",
+    )
+    .bind(limit)
+    .fetch_all(pool)
+    .await
+}
+
+/// Stores Claude's answer. `None` records a failed check so it isn't retried every run.
+pub async fn set_llm(pool: &PgPool, id: &str, verdict: Option<(&str, &str)>) -> sqlx::Result<()> {
+    sqlx::query(
+        "UPDATE jobs SET llm_checked_at = now(), llm_eligibility = $2, llm_reason = $3,
+           eligibility = CASE WHEN $2::text IS NOT NULL AND rules_eligibility = 'maybe' THEN $2 ELSE eligibility END,
+           eligibility_reason = CASE WHEN $2::text IS NOT NULL AND rules_eligibility = 'maybe' THEN $3 ELSE eligibility_reason END
+         WHERE id = $1",
+    )
+    .bind(id)
+    .bind(verdict.map(|v| v.0))
+    .bind(verdict.map(|v| v.1))
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+#[derive(Debug, Serialize, FromRow)]
+pub struct LlmSummary {
+    pub checked: i64,
+    pub pending: i64,
+    pub opened: i64,
+    pub closed: i64,
+}
+
+pub async fn llm_summary(pool: &PgPool) -> sqlx::Result<LlmSummary> {
+    sqlx::query_as(
+        "SELECT count(*) FILTER (WHERE llm_eligibility IS NOT NULL) AS checked,
+                count(*) FILTER (WHERE llm_checked_at IS NULL AND status = 'new') AS pending,
+                count(*) FILTER (WHERE llm_eligibility = 'yes') AS opened,
+                count(*) FILTER (WHERE llm_eligibility = 'no') AS closed
+         FROM jobs WHERE rules_eligibility = 'maybe'",
+    )
+    .fetch_one(pool)
+    .await
 }
 
 pub async fn update(pool: &PgPool, id: &str, status: Option<&str>, notes: Option<&str>) -> sqlx::Result<u64> {

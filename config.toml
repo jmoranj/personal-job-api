@@ -41,3 +41,9 @@ backend = 2
 greenhouse = ["gitlab", "vercel", "anthropic", "elastic"]
 lever = ["mistral", "toptal", "palantir"]
 ashby = ["deel", "posthog", "supabase", "linear", "replit"]
+
+# Claude decides the jobs the keyword rules leave as "maybe" (see the eval in README).
+# Uses Claude Code by default; set LLM_BACKEND=api in .env to use ANTHROPIC_API_KEY instead.
+[ai]
+enabled = true
+max_per_run = 100

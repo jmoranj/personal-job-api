@@ -70,8 +70,8 @@ async fn sample(pool: &PgPool, n: i64) -> anyhow::Result<()> {
     for e in LABELS {
         let mut part: Vec<Case> = sqlx::query_as(
             "SELECT id, title, company, location, left(description, 6000) AS description,
-                    eligibility AS rules, eligibility_reason AS rules_reason
-             FROM jobs WHERE eligibility = $1 AND description <> '' ORDER BY random() LIMIT $2",
+                    rules_eligibility AS rules, eligibility_reason AS rules_reason
+             FROM jobs WHERE rules_eligibility = $1 AND description <> '' ORDER BY random() LIMIT $2",
         )
         .bind(e)
         .bind(n / 3)

@@ -9,6 +9,32 @@ pub struct Config {
     pub profile: Profile,
     #[serde(default)]
     pub companies: Companies,
+    #[serde(default)]
+    pub ai: Ai,
+}
+
+/// Claude checks the jobs the keyword rules leave as "maybe".
+#[derive(Debug, Clone, Deserialize)]
+pub struct Ai {
+    #[serde(default = "yes")]
+    pub enabled: bool,
+    /// Jobs checked per search; the rest wait for the next one.
+    #[serde(default = "per_run")]
+    pub max_per_run: i64,
+}
+
+impl Default for Ai {
+    fn default() -> Self {
+        Self { enabled: true, max_per_run: per_run() }
+    }
+}
+
+fn yes() -> bool {
+    true
+}
+
+fn per_run() -> i64 {
+    100
 }
 
 #[derive(Debug, Clone, Deserialize)]

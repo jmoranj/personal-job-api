@@ -3,7 +3,7 @@
 //! Two backends:
 //! - `api`: the Claude API with ANTHROPIC_API_KEY (billed per token).
 //! - `claude-code`: runs `claude -p` and uses the Claude Code subscription (no key).
-//! Picked by LLM_BACKEND, else `api` when a key is set, else `claude-code`.
+//! `claude-code` is the default; set LLM_BACKEND=api to use the key.
 
 use anyhow::{bail, Context};
 use serde::{Deserialize, Serialize};
@@ -81,11 +81,26 @@ impl Classifier {
         let choice = std::env::var("LLM_BACKEND").unwrap_or_default();
         let backend = match (choice.as_str(), key) {
             ("api", None) => bail!("LLM_BACKEND=api but ANTHROPIC_API_KEY is not set"),
-            ("api", Some(key)) | ("", Some(key)) => Backend::Api { client, key },
-            ("claude-code", _) | ("", None) => Backend::ClaudeCode,
+            ("api", Some(key)) => Backend::Api { client, key },
+            ("claude-code", _) | ("", _) => Backend::ClaudeCode,
             (other, _) => bail!("unknown LLM_BACKEND {other:?}; use api or claude-code"),
         };
         Ok(Self { backend })
+    }
+
+    /// Checks the backend can run at all (the `claude` binary exists, or a key is set).
+    pub async fn ready(&self) -> anyhow::Result<()> {
+        if let Backend::ClaudeCode = self.backend {
+            let out = tokio::process::Command::new(std::env::var("CLAUDE_BIN").unwrap_or_else(|_| "claude".into()))
+                .arg("--version")
+                .output()
+                .await
+                .context("`claude` not found; install Claude Code or set LLM_BACKEND=api")?;
+            if !out.status.success() {
+                bail!("`claude --version` failed");
+            }
+        }
+        Ok(())
     }
 
     pub fn name(&self) -> &'static str {

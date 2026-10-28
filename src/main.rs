@@ -14,6 +14,7 @@ use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::routing::{get, patch, post};
 use axum::{Json, Router};
+use futures::StreamExt;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPoolOptions;
@@ -31,6 +32,9 @@ struct AppState {
     client: reqwest::Client,
     refreshing: AtomicBool,
     discovering: AtomicBool,
+    /// None when AI checks are off or the backend can't run.
+    classifier: Option<ai::Classifier>,
+    checking: AtomicBool,
     last_refresh: tokio::sync::RwLock<Option<DateTime<Utc>>>,
     last_discovery: tokio::sync::RwLock<Option<(DateTime<Utc>, discovery::Report)>>,
 }
@@ -66,10 +70,33 @@ async fn main() -> anyhow::Result<()> {
         return eval::main(&args[1..], pool, client).await;
     }
 
+    let classifier = if config.ai.enabled {
+        match ai::Classifier::from_env(client.clone()) {
+            Ok(c) => match c.ready().await {
+                Ok(()) => {
+                    tracing::info!("Claude checks \"maybe\" jobs via {}", c.name());
+                    Some(c)
+                }
+                Err(e) => {
+                    tracing::warn!("Claude checks off: {e:#}");
+                    None
+                }
+            },
+            Err(e) => {
+                tracing::warn!("Claude checks off: {e:#}");
+                None
+            }
+        }
+    } else {
+        None
+    };
+
     let state = Arc::new(AppState {
         pool,
         config,
         client,
+        classifier,
+        checking: AtomicBool::new(false),
         refreshing: AtomicBool::new(false),
         discovering: AtomicBool::new(false),
         last_refresh: Default::default(),
@@ -186,6 +213,53 @@ async fn refresh(state: Shared) {
 
     *state.last_refresh.write().await = Some(Utc::now());
     state.refreshing.store(false, Ordering::SeqCst);
+    tokio::spawn(check_maybe(state));
+}
+
+/// Asks Claude about the jobs the rules left as "maybe", best-scoring first.
+async fn check_maybe(state: Shared) {
+    let Some(claude) = &state.classifier else { return };
+    if state.checking.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    let pending = match db::llm_pending(&state.pool, state.config.ai.max_per_run).await {
+        Ok(p) => p,
+        Err(e) => {
+            tracing::warn!("loading maybe jobs failed: {e}");
+            state.checking.store(false, Ordering::SeqCst);
+            return;
+        }
+    };
+    let total = pending.len();
+    // Claude Code starts one process per job, so stay gentle on the subscription.
+    let parallel = if claude.name().starts_with("Claude Code") { 2 } else { 4 };
+    let pool = &state.pool;
+    let results: Vec<(bool, ai::Usage)> = futures::stream::iter(pending)
+        .map(|j| async move {
+            match claude.classify(&j.title, &j.company, &j.location, &j.description).await {
+                Ok((v, u)) => {
+                    let saved = db::set_llm(pool, &j.id, Some((&v.eligibility, &v.reason))).await;
+                    if let Err(e) = saved {
+                        tracing::warn!("saving Claude's answer for {} failed: {e}", j.id);
+                    }
+                    (true, u)
+                }
+                Err(e) => {
+                    tracing::warn!("Claude check of {} failed: {e:#}", j.id);
+                    let _ = db::set_llm(pool, &j.id, None).await;
+                    (false, ai::Usage::default())
+                }
+            }
+        })
+        .buffer_unordered(parallel)
+        .collect()
+        .await;
+    let ok = results.iter().filter(|(ok, _)| *ok).count();
+    let dollars: f64 = results.iter().map(|(_, u)| u.dollars).sum();
+    if total > 0 {
+        tracing::info!("Claude checked {ok}/{total} maybe jobs (${dollars:.2} at list price)");
+    }
+    state.checking.store(false, Ordering::SeqCst);
 }
 
 type ApiResult<T> = Result<Json<T>, (StatusCode, String)>;
@@ -228,6 +302,15 @@ struct Stats {
     last_discovery: Option<DateTime<Utc>>,
     last_discovery_report: Option<serde_json::Value>,
     refresh_hours: u64,
+    ai: Option<AiStats>,
+}
+
+#[derive(Serialize)]
+struct AiStats {
+    backend: &'static str,
+    running: bool,
+    #[serde(flatten)]
+    summary: db::LlmSummary,
 }
 
 async fn stats(State(s): State<Shared>) -> ApiResult<Stats> {
@@ -242,6 +325,14 @@ async fn stats(State(s): State<Shared>) -> ApiResult<Stats> {
         last_discovery: s.last_discovery.read().await.as_ref().map(|(t, _)| *t),
         last_discovery_report: s.last_discovery.read().await.as_ref().map(|(_, r)| serde_json::to_value(r).unwrap_or_default()),
         refresh_hours: s.config.refresh_hours,
+        ai: match &s.classifier {
+            Some(c) => Some(AiStats {
+                backend: c.name(),
+                running: s.checking.load(Ordering::SeqCst),
+                summary: db::llm_summary(&s.pool).await.map_err(internal)?,
+            }),
+            None => None,
+        },
     }))
 }
 

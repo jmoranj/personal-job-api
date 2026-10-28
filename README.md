@@ -99,6 +99,10 @@ cargo run -- eval run          # writes evals/REPORT.md
 | `api` | `ANTHROPIC_API_KEY` in `.env` | Billed per token (~$0.02–0.04 per job on Opus 5.5) |
 | `claude-code` | Claude Code installed and logged in | Uses your Claude Code subscription limits; runs `claude -p` per job, slower |
 
-With a key it uses the API; without one it uses Claude Code. Force one with `LLM_BACKEND=api` or `LLM_BACKEND=claude-code`.
+Claude Code is the default. Set `LLM_BACKEND=api` (with the key) to use the API instead.
 
 The report compares keyword rules, Claude alone, and rules + Claude on "maybe" by accuracy, "yes" precision and recall, jobs wrongly hidden as "no", and cost per job. Claude's answers are cached in `evals/predictions-<model>.jsonl`, so re-running the report is free.
+
+### Claude in the search
+
+After every search, Claude checks up to `[ai] max_per_run` (default 100) jobs the rules left as "maybe", best-scoring first, and its answer becomes the job's eligibility. The rules' own answer is kept in `rules_eligibility`, and a later search never overwrites Claude's answer while the rules still say "maybe". The dashboard marks these jobs "· Claude" and shows Claude's reason. Turn it off with `[ai] enabled = false`.
