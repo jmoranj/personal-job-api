@@ -15,8 +15,15 @@ You get the job posting and his CV. Use web search and fetch to learn about the 
 Rules:
 - Use only facts from the CV. Never invent experience, numbers, employers or skills. If the job asks for \
 something the CV doesn't show, list it under gaps; don't hide it.
+- Don't stretch facts either: no seniority words (\"senior\", \"lead\") he doesn't hold, no \"I'm learning X\" \
+unless the CV says so, no \"I already work this way\" about practices the CV doesn't show, no turning one \
+project into a habit (\"I always...\"), and keep each project's role exactly as the CV states it \
+(main developer, sole developer, or just \"built\").
+- self_check: list every statement about him in the cover letter, outreach and follow-up, each with the CV \
+line that supports it. If a statement has no supporting line, rewrite or remove it before answering.
+- Company facts you mention must come from a page you actually read; put that page in sources.
 - Pick the 2-3 CV experiences that best match what this job needs, and say why in the job's own terms.
-- Cover letter: under 180 words, plain and specific, no clichés (\"I am excited to apply\", \"passionate\"). \
+- Cover letter: at most 160 words (never write the word count in the text), plain and specific, no clichés (\"I am excited to apply\", \"passionate\"). \
 Open with what he'd do for them, mention one concrete thing about the company you found, end with a simple ask.
 - Outreach message: under 90 words, for LinkedIn or email, to the person in contact. One specific hook, \
 one proof point, one ask (a short call or to flag his application).
@@ -62,10 +69,19 @@ fn schema() -> serde_json::Value {
             "outreach_message": text,
             "follow_up": text,
             "checks": {"type": "array", "items": text},
+            "self_check": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {"claim": text, "cv_line": text},
+                    "required": ["claim", "cv_line"],
+                    "additionalProperties": false
+                }
+            },
             "sources": {"type": "array", "items": text}
         },
         "required": ["fit", "company_notes", "highlights", "gaps", "cover_letter", "contact",
-                     "outreach_message", "follow_up", "checks", "sources"],
+                     "outreach_message", "follow_up", "checks", "self_check", "sources"],
         "additionalProperties": false
     })
 }
@@ -111,7 +127,8 @@ pub async fn prepare(pool: &PgPool, claude: &Classifier, job_id: &str) {
     }
 }
 
-async fn draft(pool: &PgPool, claude: &Classifier, job_id: &str) -> anyhow::Result<(serde_json::Value, f64)> {
+/// Returns the draft and its list-price cost. Also used by the draft eval.
+pub async fn draft(pool: &PgPool, claude: &Classifier, job_id: &str) -> anyhow::Result<(serde_json::Value, f64)> {
     let cv = load_cv()?;
     let job: JobText = sqlx::query_as("SELECT title, company, url, location, description FROM jobs WHERE id = $1")
         .bind(job_id)
@@ -126,6 +143,7 @@ async fn draft(pool: &PgPool, claude: &Classifier, job_id: &str) -> anyhow::Resu
     let (v, usage) = claude
         .ask(&Ask { system: SYSTEM, prompt: &prompt, schema: schema(), effort: "medium", web: true })
         .await?;
+    let v = strip_word_counts(v);
     tracing::info!(
         "prepared {job_id} in {}s (${:.2} at list price)",
         started.elapsed().as_secs(),
@@ -164,4 +182,26 @@ pub async fn get(pool: &PgPool, job_id: &str) -> sqlx::Result<Option<Application
         .bind(job_id)
         .fetch_optional(pool)
         .await
+}
+
+/// Removes notes like "(157 words)" that the model sometimes appends to text meant to be sent.
+fn strip_word_counts(mut v: serde_json::Value) -> serde_json::Value {
+    let note = regex::Regex::new(r"\s*\(~?\d+ words?\)").unwrap();
+    for key in ["cover_letter", "outreach_message", "follow_up"] {
+        if let Some(text) = v[key].as_str() {
+            v[key] = serde_json::Value::String(note.replace_all(text, "").trim().to_string());
+        }
+    }
+    v
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn strips_word_counts() {
+        let v = serde_json::json!({"cover_letter": "Could we talk?\n\nJoão\n\n(157 words)", "follow_up": "Hi (~40 words)"});
+        let v = super::strip_word_counts(v);
+        assert_eq!(v["cover_letter"], "Could we talk?\n\nJoão");
+        assert_eq!(v["follow_up"], "Hi");
+    }
 }

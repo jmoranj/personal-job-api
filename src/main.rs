@@ -2,6 +2,7 @@ mod ai;
 mod config;
 mod discovery;
 mod eval;
+mod eval_drafts;
 mod filter;
 mod infra;
 mod prep;

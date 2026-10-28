@@ -1,3 +1,7 @@
 target/
 .env
 cv.md
+evals/drafts/out/
+evals/drafts/out-v1/
+evals/drafts/REPORT.md
+evals/drafts/REPORT-v1.md

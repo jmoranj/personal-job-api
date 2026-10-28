@@ -120,3 +120,23 @@ In the dashboard, open a job and press **Prepare application**. Claude (`src/pre
 Nothing is sent automatically; you copy, edit and send. Jobs marked Applied 6+ days ago show a "Follow up" badge.
 
 The CV is read from `cv.md` (gitignored) or `CV_PATH`. It runs through the same backend as the eligibility check (Claude Code by default; with the API it uses the server-side `web_search` / `web_fetch` tools). A draft takes about 1–2 minutes and about $0.40 at API list price.
+
+### Draft eval
+
+```bash
+cargo run -- eval drafts sample 12   # open-to-Brazil jobs, one per company, spread across match scores
+cargo run -- eval drafts run         # draft (cached) + grade -> evals/drafts/REPORT.md
+```
+
+Each draft gets objective **code checks** (word limits, clichés, guessed emails, numbers not found in the CV / posting / research, contact name present on the cited page, complete self-check) and a **Claude judge** with a rubric (claims about the candidate the CV doesn't support, a checkable company detail, requirements coverage, honest gaps). Drafts and the detailed report name real people, so they stay local; the results:
+
+| 12 jobs | v1 prompt | v2 prompt (+ self-check) |
+|---|---|---|
+| Drafts with claims the CV doesn't support (judge) | 8 / 12 | **1 / 12** |
+| Cover letters over the word limit | 3 / 12 | **0 / 12** |
+| All code checks pass | 6 / 12 | **12 / 12** |
+| Specific, checkable company detail (judge) | 10 / 12 | 9 / 12 |
+| Gaps listed honestly (judge) | 12 / 12 | 12 / 12 |
+| Cost per draft (API list price) | $0.31 | $0.36 |
+
+v2 forbids stretched claims (seniority, "I'm learning X", one project as a habit) and makes the agent list every claim with the CV line that supports it. The eval also caught a v2 regression — word counts like "(157 words)" pasted into letters — now stripped in code and covered by a test.

@@ -42,7 +42,8 @@ pub async fn main(args: &[String], pool: PgPool, client: reqwest::Client) -> any
         Some("sample") => sample(&pool, args.get(1).and_then(|n| n.parse().ok()).unwrap_or(150)).await,
         Some("label") => label(),
         Some("run") => run(client).await,
-        _ => bail!("usage: eval sample [n] | eval label | eval run"),
+        Some("drafts") => crate::eval_drafts::main(&args[1..], pool, client).await,
+        _ => bail!("usage: eval sample [n] | eval label | eval run | eval drafts sample [n] | eval drafts run"),
     }
 }
 
