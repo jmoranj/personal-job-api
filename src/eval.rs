@@ -230,17 +230,29 @@ async fn run(client: reqwest::Client) -> anyhow::Result<()> {
     report.push_str(&format!("# Eligibility eval — {}\n\n", chrono::Utc::now().format("%Y-%m-%d")));
     report.push_str(&format!("{} hand-labeled jobs. Model: `{}`, via {}.\n\n", cases.len(), ai::MODEL, claude.name()));
     let ai_labeled = cases.iter().filter(|c| c.labeled_by.as_deref() == Some("ai-assistant")).count();
+    let reviewed = cases.iter().filter(|c| c.labeled_by.as_deref() == Some("human-reviewed")).count();
     if ai_labeled > 0 {
         report.push_str(&format!(
-            "> **Caveat:** {ai_labeled} of {} labels were written by an AI assistant (also Claude), not a human. \
-             Agreement between Claude and these labels partly measures Claude agreeing with itself; \
-             treat the Claude numbers as an upper bound until a human reviews them.\n\n",
+            "> **Caveat:** {ai_labeled} of {} labels were written by an AI assistant (also Claude), not a human; \
+             {reviewed} more were decided by a human from AI-extracted evidence. \
+             Agreement between Claude and AI-written labels partly measures Claude agreeing with itself, \
+             so treat the Claude numbers as an upper bound. The human-reviewed subset is scored separately below.\n\n",
             cases.len()
         ));
     }
     report.push_str("| Classifier | Accuracy | \"Yes\" precision | \"Yes\" recall | Wrongly says \"no\" | Undecided (maybe) |\n|---|---|---|---|---|---|\n");
     for (name, pairs) in [("Keyword rules", &rules), ("Claude", &llm), ("Rules + Claude on maybe", &hybrid)] {
         report.push_str(&row(name, pairs));
+    }
+    if reviewed > 0 {
+        let human: Vec<&(&Case, &str)> =
+            gold.iter().filter(|(c, _)| c.labeled_by.as_deref() == Some("human-reviewed")).collect();
+        let rr: Vec<(&str, &str)> = human.iter().map(|(c, g)| (*g, c.rules.as_str())).collect();
+        let ll: Vec<(&str, &str)> =
+            human.iter().filter_map(|(c, g)| cache.get(&c.id).map(|p| (*g, p.eligibility.as_str()))).collect();
+        report.push_str(&format!("\n**Human-reviewed subset only ({reviewed} hardest jobs):**\n\n| Classifier | Accuracy | \"Yes\" precision | \"Yes\" recall | Wrongly says \"no\" | Undecided (maybe) |\n|---|---|---|---|---|---|\n"));
+        report.push_str(&row("Keyword rules", &rr));
+        report.push_str(&row("Claude", &ll));
     }
     report.push_str("\n**Wrongly says \"no\"** = jobs actually open to Brazil that would be hidden. It's the costliest mistake.\n\n");
     report.push_str("## Confusion (rows = label, columns = prediction)\n\n");
