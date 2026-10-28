@@ -5,6 +5,7 @@ mod eval;
 mod eval_drafts;
 mod filter;
 mod infra;
+mod mcp;
 mod prep;
 mod sources;
 
@@ -45,9 +46,15 @@ type Shared = Arc<AppState>;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Tools that launch us from elsewhere (an MCP client) point here so .env and config.toml resolve.
+    if let Ok(home) = std::env::var("JOB_RADAR_HOME") {
+        std::env::set_current_dir(&home).map_err(|e| anyhow::anyhow!("JOB_RADAR_HOME={home}: {e}"))?;
+    }
     dotenvy::dotenv().ok();
     tracing_subscriber::fmt()
         .with_env_filter(std::env::var("RUST_LOG").unwrap_or_else(|_| "job_radar=info".into()))
+        // stderr, so `job-radar mcp` keeps stdout for protocol messages only.
+        .with_writer(std::io::stderr)
         .init();
 
     let config = Config::load(&std::env::var("CONFIG").unwrap_or_else(|_| "config.toml".into()))?;
@@ -68,8 +75,10 @@ async fn main() -> anyhow::Result<()> {
         .build()?;
 
     let args: Vec<String> = std::env::args().skip(1).collect();
-    if args.first().map(String::as_str) == Some("eval") {
-        return eval::main(&args[1..], pool, client).await;
+    match args.first().map(String::as_str) {
+        Some("eval") => return eval::main(&args[1..], pool, client).await,
+        Some("mcp") => return mcp::serve(pool).await,
+        _ => {}
     }
 
     let classifier = if config.ai.enabled {

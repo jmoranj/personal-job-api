@@ -140,3 +140,23 @@ Each draft gets objective **code checks** (word limits, clichés, guessed emails
 | Cost per draft (API list price) | $0.31 | $0.36 |
 
 v2 forbids stretched claims (seniority, "I'm learning X", one project as a habit) and makes the agent list every claim with the CV line that supports it. The eval also caught a v2 regression — word counts like "(157 words)" pasted into letters — now stripped in code and covered by a test.
+
+## MCP server
+
+`job-radar mcp` runs a [Model Context Protocol](https://modelcontextprotocol.io) server over stdio (`src/mcp.rs`, hand-written JSON-RPC, no SDK), so Claude can work with your search directly:
+
+| Tool | What it does |
+|---|---|
+| `search_jobs` | Search by words, status and Brazil eligibility, best match first |
+| `get_job` | Full job, eligibility reason, notes, and the prepared application draft |
+| `update_job` | Save, mark applied, etc., and edit notes |
+| `pipeline` | Counts by status, new in 24h, follow-ups due |
+
+Add it to Claude Code (builds a release binary first):
+
+```bash
+cargo build --release
+claude mcp add --scope user job-radar -e JOB_RADAR_HOME=$PWD -- $PWD/target/release/job-radar mcp
+```
+
+`JOB_RADAR_HOME` points at this folder so `.env` and `config.toml` are found wherever the client starts the server. Postgres must be running. Then ask Claude things like "which open-to-Brazil jobs fit me best this week?" or "what follow-ups are due?".
