@@ -134,7 +134,7 @@ Each draft gets objective **code checks** (word limits, clichés, guessed emails
 |---|---|---|
 | Drafts with claims the CV doesn't support (judge) | 8 / 12 | **1 / 12** |
 | Cover letters over the word limit | 3 / 12 | **0 / 12** |
-| All code checks pass | 6 / 12 | **12 / 12** |
+| All code checks pass | 7 / 12 | **12 / 12** |
 | Specific, checkable company detail (judge) | 10 / 12 | 9 / 12 |
 | Gaps listed honestly (judge) | 12 / 12 | 12 / 12 |
 | Cost per draft (API list price) | $0.31 | $0.36 |
