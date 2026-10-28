@@ -4,6 +4,7 @@ mod discovery;
 mod eval;
 mod filter;
 mod infra;
+mod prep;
 mod sources;
 
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -131,6 +132,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/refresh", post(trigger_refresh))
         .route("/api/companies", get(list_companies))
         .route("/api/discover", post(trigger_discover))
+        .route("/api/jobs/{id}/application", get(get_application).post(prepare_application))
         .fallback_service(ServeDir::new(&dist).fallback(ServeFile::new(format!("{dist}/index.html"))))
         .layer(CorsLayer::permissive())
         .with_state(state);
@@ -348,4 +350,26 @@ async fn list_companies(State(s): State<Shared>) -> ApiResult<Vec<db::Company>> 
 async fn trigger_discover(State(s): State<Shared>) -> StatusCode {
     tokio::spawn(discover(s));
     StatusCode::ACCEPTED
+}
+
+async fn get_application(State(s): State<Shared>, Path(id): Path<String>) -> ApiResult<Option<prep::Application>> {
+    prep::get(&s.pool, &id).await.map(Json).map_err(internal)
+}
+
+/// Starts the prep agent for a job; the dashboard polls GET until the draft is ready.
+async fn prepare_application(State(s): State<Shared>, Path(id): Path<String>) -> Result<StatusCode, (StatusCode, String)> {
+    let Some(claude) = &s.classifier else {
+        return Err((StatusCode::SERVICE_UNAVAILABLE, "Claude is off; see the server log".into()));
+    };
+    prep::load_cv().map_err(|e| (StatusCode::SERVICE_UNAVAILABLE, format!("{e:#}")))?;
+    if !prep::start(&s.pool, &id, claude.name()).await.map_err(internal)? {
+        return Ok(StatusCode::ACCEPTED);
+    }
+    let state = s.clone();
+    tokio::spawn(async move {
+        if let Some(claude) = &state.classifier {
+            prep::prepare(&state.pool, claude, &id).await;
+        }
+    });
+    Ok(StatusCode::ACCEPTED)
 }

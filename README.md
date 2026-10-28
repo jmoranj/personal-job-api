@@ -106,3 +106,17 @@ The report compares keyword rules, Claude alone, and rules + Claude on "maybe" b
 ### Claude in the search
 
 After every search, Claude checks up to `[ai] max_per_run` (default 100) jobs the rules left as "maybe", best-scoring first, and its answer becomes the job's eligibility. The rules' own answer is kept in `rules_eligibility`, and a later search never overwrites Claude's answer while the rules still say "maybe". The dashboard marks these jobs "· Claude" and shows Claude's reason. Turn it off with `[ai] enabled = false`.
+
+## Application-prep agent
+
+In the dashboard, open a job and press **Prepare application**. Claude (`src/prep.rs`) reads the posting and your CV, uses web search and fetch to research the company and find a real person who hires for the role, and returns structured JSON:
+
+- fit score (1–5) and an honest summary, including gaps
+- 2–3 CV experiences that match the job, and why
+- a cover letter (<180 words), a message to the contact (<90 words) and a follow-up (<60 words)
+- the contact's name, role and the page it came from (never a guessed email)
+- things to check before sending, and the sources it used
+
+Nothing is sent automatically; you copy, edit and send. Jobs marked Applied 6+ days ago show a "Follow up" badge.
+
+The CV is read from `cv.md` (gitignored) or `CV_PATH`. It runs through the same backend as the eligibility check (Claude Code by default; with the API it uses the server-side `web_search` / `web_fetch` tools). A draft takes about 1–2 minutes and about $0.40 at API list price.
