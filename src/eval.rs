@@ -30,6 +30,10 @@ struct Case {
     /// Hand label; None until labeled.
     #[sqlx(default)]
     label: Option<String>,
+    /// "human" or "ai-assistant"; the report says which, since AI labels are weaker evidence.
+    #[sqlx(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    labeled_by: Option<String>,
 }
 
 pub async fn main(args: &[String], pool: PgPool, client: reqwest::Client) -> anyhow::Result<()> {
@@ -119,6 +123,7 @@ fn label() -> anyhow::Result<()> {
                 }
             };
             cases[i].label = pick.map(String::from);
+            cases[i].labeled_by = Some("human".into());
             done += 1;
             save(&cases)?;
             break;
@@ -224,6 +229,15 @@ async fn run(client: reqwest::Client) -> anyhow::Result<()> {
     let mut report = String::new();
     report.push_str(&format!("# Eligibility eval — {}\n\n", chrono::Utc::now().format("%Y-%m-%d")));
     report.push_str(&format!("{} hand-labeled jobs. Model: `{}`, via {}.\n\n", cases.len(), ai::MODEL, claude.name()));
+    let ai_labeled = cases.iter().filter(|c| c.labeled_by.as_deref() == Some("ai-assistant")).count();
+    if ai_labeled > 0 {
+        report.push_str(&format!(
+            "> **Caveat:** {ai_labeled} of {} labels were written by an AI assistant (also Claude), not a human. \
+             Agreement between Claude and these labels partly measures Claude agreeing with itself; \
+             treat the Claude numbers as an upper bound until a human reviews them.\n\n",
+            cases.len()
+        ));
+    }
     report.push_str("| Classifier | Accuracy | \"Yes\" precision | \"Yes\" recall | Wrongly says \"no\" | Undecided (maybe) |\n|---|---|---|---|---|---|\n");
     for (name, pairs) in [("Keyword rules", &rules), ("Claude", &llm), ("Rules + Claude on maybe", &hybrid)] {
         report.push_str(&row(name, pairs));

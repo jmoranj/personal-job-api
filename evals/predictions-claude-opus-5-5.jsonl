@@ -1,0 +1,150 @@
+{"id":"lemonio|seniordevopsengineer","eligibility":"yes","reason":"\"We work with developers from 75+ countries across Europe, Latin America, North America...\" Remote contract roles, so Brazil is covered."}
+{"id":"trmlabs|seniorsoftwareengineerbackendproductengineering","eligibility":"yes","reason":"Location listed as \"South America\"; required PST overlap (8am–2pm PST) is workable from UTC-3."}
+{"id":"canonical|softwareengineeringmanagerbackendsaas","eligibility":"yes","reason":"Location is \"Home Based - Americas\", which includes Brazil. The role is work-from-home with global travel 4-6 weeks per year."}
+{"id":"toggl|seniorfullstack","eligibility":"yes","reason":"\"Work from anywhere in the world as long as your main location is between UTC-4 and UTC+4\", and Brazil (UTC-3) qualifies."}
+{"id":"canonical|distributedsystemsengineer","eligibility":"no","reason":"Description states \"This role will be based remotely in the EMEA region,\" which excludes Brazil despite the \"Anywhere\" location label."}
+{"id":"oscilarcom|srstaffsoftwareengineersdatascientistfdepm","eligibility":"yes","reason":"Remote roles open to \"US/Canada/Brazil/Poland/UK/India\"; Java Backend, Web SDK, and FDE roles explicitly list Brazil."}
+{"id":"canonical|seniorsecurityoperationsengineer","eligibility":"yes","reason":"Location \"Home based - Worldwide\"; Canonical says it recruits globally and has been remote-first since 2004."}
+{"id":"canonical|sitereliabilitygitopsengineer","eligibility":"yes","reason":"Location is \"Home based - Worldwide\" and the role is \"available remotely in any timezone.\""}
+{"id":"infisical|fullstackengineer","eligibility":"yes","reason":"Brazil is listed by name: \"Based in the Americas (US or Canada), Brazil, India, UK, or EU.\" Working US hours is doable from UTC-3."}
+{"id":"flutterflow|softwareengineerfutureopenings","eligibility":"maybe","reason":"Conflicting: location says \"Remote - Global\" and \"15 countries\", but description says \"based anywhere in the United States.\""}
+{"id":"truelogic|seniorbackendengineeropenapplication","eligibility":"yes","reason":"Location is \"LatAm\"; the company says its 600+ professionals are \"based in Latin America\", and the role is 100% remote."}
+{"id":"canarytechnologies|leadsecurityengineer","eligibility":"yes","reason":"The location is listed as \"United States, Latin America,\" and Brazil is in Latin America."}
+{"id":"krugernearshorellcrekluti|desarrolladorfullstack","eligibility":"yes","reason":"The post says \"Modalidad: 100% remoto. Ubicación: LATAM. Contratación: Contractor.\" Brazil is in LATAM, and pay is in USD."}
+{"id":"flex|seniorstaffsoftwareengineerpartnerintegrations","eligibility":"yes","reason":"Location is \"Remote - Global\" and the company says it has \"employees across the US, Australia, Canada, and South America.\""}
+{"id":"turing|researchengineerfrontierdata","eligibility":"yes","reason":"Posting states \"This is a remote role and can be performed anywhere in Brazil/Colombia.\""}
+{"id":"canonical|linuxkernelengineer","eligibility":"yes","reason":"Location says \"Home based - Worldwide\", and the posting adds \"We have kernel teams and openings in every time zone.\" Travel is required twice a year."}
+{"id":"supabase|finopsengineer","eligibility":"yes","reason":"The location is \"Remote, Global\" and the posting says \"We hire globally... do your best work from anywhere\", with a team in 60+ countries."}
+{"id":"epicgames|machinelearningengineermemory","eligibility":"yes","reason":"The role is based in Porto Alegre, Brazil, with Brazilian benefits like meal vouchers. It may require working onsite in Porto Alegre."}
+{"id":"supabase|performanceengineerbenchmarking","eligibility":"yes","reason":"Location \"Remote, Global\"; posting states \"We hire globally... do your best work from anywhere,\" team spans 60+ countries."}
+{"id":"luxortechnology|dataengineer","eligibility":"yes","reason":"Location explicitly lists \"Worldwide, Remote\" and \"Brazil, Remote\" among allowed locations."}
+{"id":"oscilar|forwarddeployedengineer","eligibility":"yes","reason":"Location is listed as \"Brazil - Remote,\" so the role explicitly allows working remotely from Brazil."}
+{"id":"canonical|webfrontendengineerjscssreactflutter","eligibility":"yes","reason":"\"This is a Globally remote role\"; location \"Anywhere\"; Canonical has colleagues in 75+ countries and recruits globally."}
+{"id":"oowlishtechnology|fullstackengineervuenest","eligibility":"yes","reason":"Location lists \"Argentina, Brazil, Mexico\"; Oowlish is a Latin American company offering remote work."}
+{"id":"canonical|performanceengineeropensource","eligibility":"yes","reason":"Location \"Anywhere\"; \"We have teams in every time zone, and can accommodate applications from almost any country.\""}
+{"id":"canarytechnologies|seniorvoicesoftwareengineer","eligibility":"yes","reason":"Location listed as \"Latin America\", which includes Brazil."}
+{"id":"canonical|softwareengineersecurecontainerimages","eligibility":"yes","reason":"Location lists \"Home Based - Americas\" and the description says \"This is a globally remote role,\" so Brazil is included."}
+{"id":"canonical|linuxplatformintegrationubuntusystemsseniorengineer","eligibility":"yes","reason":"The posting says \"This is a Globally remote role,\" lists the location as Anywhere, and says Canonical recruits on a global basis."}
+{"id":"alpaca|seniorsoftwareengineerqualityengineering","eligibility":"yes","reason":"Location is \"Global Anywhere\" and the team includes members in Brazil, so working from Brazil is allowed."}
+{"id":"canonical|sustainingoperationsengineer","eligibility":"yes","reason":"Location \"Anywhere\" and states \"This is a globally remote role\"; Canonical recruits on a global basis."}
+{"id":"canonical|juniorlinuxkernelengineerubuntu","eligibility":"yes","reason":"Location \"Anywhere\"; \"home-based Kernel Teams in every timezone\" and \"we recruit on a global basis\" across 75+ countries."}
+{"id":"canonical|softwareengineersustainingengineering","eligibility":"yes","reason":"Location \"Anywhere\"; \"remote role, we have teams in all time zones\"; Canonical recruits globally across 75+ countries."}
+{"id":"canonical|softwareengineercloudimages","eligibility":"yes","reason":"Location is \"Home Based - Americas\", and Canonical says it recruits globally. Brazil is in the Americas, so it's included."}
+{"id":"oscilar|srstaffjavascriptdeveloperwebsdkbrazilcanadaukpolandindia","eligibility":"yes","reason":"Location lists \"Brazil - Remote\", and the title says (Brazil/Canada/UK/Poland/India)."}
+{"id":"aleph|staffsoftwareengineerproduct","eligibility":"yes","reason":"The posting says \"We are hiring remotely across the Americas (United States, Canada, LATAM)\", and Brazil is part of LATAM."}
+{"id":"aleph|staffsoftwareengineerai","eligibility":"yes","reason":"The posting says \"We are hiring remotely across the Americas (United States, Canada, LATAM),\" and Brazil is in LATAM."}
+{"id":"supabase|finopsdataengineer","eligibility":"yes","reason":"\"Fully Remote. We hire globally... do your best work from anywhere\"; location listed as Remote, Global."}
+{"id":"alpaca|staffsoftwareengineerplatform","eligibility":"yes","reason":"The location is \"Remote- Europe/ Americas\", which covers Brazil, and the posting says the team already includes people in Brazil."}
+{"id":"canonical|pythonandkubernetessoftwareengineerdataworkflowsaimlanalytics","eligibility":"yes","reason":"Location \"Anywhere\"; Canonical says it recruits globally, has colleagues in 70+ countries and sets pay by location worldwide."}
+{"id":"canonical|ubuntusecurityengineer","eligibility":"yes","reason":"Posting says \"Location: Worldwide, this is a globally remote role\"; home based worldwide, colleagues in 75+ countries."}
+{"id":"alpaca|softwareengineersecuritiesfinance","eligibility":"yes","reason":"Location is \"Remote - Americas\", and the posting says the team already includes people in Brazil."}
+{"id":"supabase|sitereliabilityengineer","eligibility":"yes","reason":"Location is \"Remote, Global\" and the posting says \"We hire globally... do your best work from anywhere\"; the team spans 60+ countries."}
+{"id":"canonical|engineeringmanagerdataplatform","eligibility":"yes","reason":"\"Home based - Worldwide\"; role \"can be filled in European, Middle East, African or any American region / time zone.\""}
+{"id":"truelogic|qualityengineeropenapplication","eligibility":"yes","reason":"Location is LatAm; the team is \"based in Latin America\" with \"100% Remote Work\" for U.S. clients."}
+{"id":"canonical|mlopsfieldengineer","eligibility":"yes","reason":"\"Home based - Worldwide\"; growing teams in EMEA, Americas and APAC, \"can accommodate candidates from almost any country.\""}
+{"id":"supabase|releaseengineer","eligibility":"yes","reason":"Location is \"Remote, Global\" and the posting says \"We hire globally... do your best work from anywhere,\" with team in 60+ countries."}
+{"id":"brave|seniorbuildsystemsengineer","eligibility":"yes","reason":"\"Remote - Anywhere (American timezones preferred)\". Brazil falls in the Americas time zones, and the posting names no country restriction."}
+{"id":"alpaca|softwareengineercrypto","eligibility":"yes","reason":"Location \"Remote - EU - LATAM - NA\"; team includes members in Brazil."}
+{"id":"supabase|multigresdeploymentengineer","eligibility":"yes","reason":"Location \"Remote, Global\"; posting states \"We hire globally... do your best work from anywhere.\""}
+{"id":"alpaca|seniorsoftwareengineernewmarkets","eligibility":"yes","reason":"The location is \"Remote - Americas,\" and the team already has people in Brazil, so Brazil-based engineers are covered."}
+{"id":"mixmax|seniorproductengineerainative","eligibility":"yes","reason":"Location \"Brazil or Argentina\"; \"remote, ideally LATAM (Brazil or Argentina preferably).\""}
+{"id":"asana|softwareengineerproduct","eligibility":"no","reason":"Hybrid role \"based in our Vancouver office\" with in-office days Monday, Tuesday, and Thursday."}
+{"id":"figma|softwareengineerdatainfrastructure","eligibility":"no","reason":"Role \"can be held from one of our US hubs or remotely in the United States,\" so Brazil is excluded."}
+{"id":"fingerprint|seniordatawarehouseengineer","eligibility":"yes","reason":"\"Globally dispersed, 100% remote company... people can join our workforce from almost any country\"; only a small number of countries are excluded."}
+{"id":"smartcuts|softwareengineer","eligibility":"maybe","reason":"Says \"Remote\" and \"distributed team\" but gives no country, region, or time zone rule."}
+{"id":"canonical|golangsoftwareengineercommercialsystems","eligibility":"no","reason":"Role \"will be based remotely in the EMEA region,\" which excludes Brazil."}
+{"id":"krakentech|seniorsoftwareengineerclientengineeringremotewithinaustralia","eligibility":"no","reason":"The posting says \"This role is available remotely within Australia or hybrid from Melbourne,\" which rules out Brazil."}
+{"id":"okta|staffsoftwareengineeridentityadministrationfullstack","eligibility":"no","reason":"The role is based in Bengaluru, India and tagged #LI_Hybrid, so it requires hybrid presence in India."}
+{"id":"okta|staffsoftwareengineerplatforminfrastructure","eligibility":"no","reason":"The role is based in Bengaluru, India, and tagged \"L1-Hybrid\", so you'd need to be there in person. That rules out working from Brazil."}
+{"id":"mongodb|consultingengineer","eligibility":"no","reason":"Hybrid role requiring candidates \"based in Berlin for our hybrid working model\"; German fluency also required."}
+{"id":"mongodb|staffsitereliabilityengineerinfrastructuresecurity","eligibility":"no","reason":"\"This role can be based out of our office or remotely in the United States.\" US-only."}
+{"id":"oscilar|srstaffbackendengineerjavaindia","eligibility":"no","reason":"The role is listed as \"Remote (India)\". Oscilar has teams in Brazil, but this opening is limited to India."}
+{"id":"okta|seniordeveloperadvocateauth0","eligibility":"no","reason":"Located in New York, NY with US salary ranges, US benefits like 401(k), and in-person onboarding. Nothing suggests Brazil is allowed."}
+{"id":"vercel|softwareengineerplatform","eligibility":"maybe","reason":"Listed as hybrid SF/NYC, but the description says \"onsite, hybrid, or remote\" and gives no country rule for remote hires."}
+{"id":"ebury|businessdeveloperpartnershipsfrenchspeaking","eligibility":"no","reason":"Office-based role in Zurich (\"Ebury Zurich - Office based\", #LI-ONSITE). It's also a French-speaking sales role, not software engineering."}
+{"id":"taktile|softwareengineerinternshipforhpistudents","eligibility":"no","reason":"Hybrid role that requires working 3 days a week at the Berlin HQ, and it is only open to HPI students."}
+{"id":"generalassembly|softwareengineeringinstructorleadbahrainfulltimetemporaryposition","eligibility":"no","reason":"On-site teaching in Bahrain with travel covered. Remote work is limited to the US, Canada, UK, Australia and Singapore."}
+{"id":"mongodb|staffsitereliabilityengineer","eligibility":"no","reason":"Hybrid role in India: \"looking to speak to candidates who are based in Gurugram for our hybrid working model.\""}
+{"id":"virtahealth|softwareengineer","eligibility":"no","reason":"Hiring is restricted to US states (\"Corporate roles: We currently do not hire in the following states: AK, DE...\"), and pay is in USD by location."}
+{"id":"olo|softwareengineerbrandx","eligibility":"no","reason":"The role is remote only inside Northern Ireland: \"flexibility to work from anywhere within NI,\" based in Belfast."}
+{"id":"twilio|principalpresalesengineer","eligibility":"no","reason":"Location is \"Remote - US\" and excludes specific US states, so the role is US-only. It also needs about 25% travel."}
+{"id":"datadog|seniorsoftwareengineerstreamingplatform","eligibility":"no","reason":"The job is based in New York, USA, and is hybrid (\"#LI-Hybrid\", \"we operate as a hybrid workplace\"), so it requires office presence outside Brazil."}
+{"id":"asana|seniorproductmanageraicontext","eligibility":"no","reason":"Hybrid role \"based in our New York City office\" with required in-office days Monday, Tuesday, and Thursday."}
+{"id":"stripe|offensivesecurityengineer","eligibility":"no","reason":"Location is \"US - Remote\" and the team is \"distributed across the United States\", so this is US-only remote."}
+{"id":"axios|softwareengineer","eligibility":"maybe","reason":"Location only says \"Remote\" with no country rule stated. Axios is US-based, so it may hire only in the US."}
+{"id":"okta|staffsoftwareengineerfederal","eligibility":"no","reason":"Hybrid role (#LI-HYBRID) in US cities (Chicago, NY, Seattle, DC); Federal team requiring Secret/TS clearance."}
+{"id":"figma|productmanageraigrowth","eligibility":"no","reason":"Location limited to San Francisco, New York, United States; US salary range and in-person onboarding required."}
+{"id":"legora|legalengineerappliedaiknowledge","eligibility":"no","reason":"The location is London and the posting never mentions remote work. It describes onboarding Legal Engineers \"in your region,\" so the role is tied to London."}
+{"id":"eightsleep|growthengineernewgradmilan","eligibility":"no","reason":"Requires \"legal permit to work in the EU and willingness to work from Milan\" — on-site in Italy."}
+{"id":"okta|softwarebackendarchitect","eligibility":"no","reason":"Location is Bengaluru, India, tagged #LI-Hybrid with in-person onboarding, so it needs hybrid presence in India."}
+{"id":"vercel|softwareengineerobservability","eligibility":"maybe","reason":"The posting says \"If you're located beyond that distance, the role is fully remote,\" but it never says which countries are allowed. The role is listed as NYC-based."}
+{"id":"supabase|postgresengineeramer","eligibility":"yes","reason":"Location is \"Remote, AMER\", which includes Brazil. The posting says \"We hire globally\" and requires Americas time zone overlap, which UTC-3 meets."}
+{"id":"godaddy|staffsoftwareengineerbackend","eligibility":"no","reason":"The location is United States. The role excludes several US states, such as Alaska, Mississippi and California, so it is limited to US residents."}
+{"id":"bounteous|seniorfullstackengineer","eligibility":"maybe","reason":"Location is listed only as \"Mexico\". The description never mentions remote work or whether candidates must live there, and doesn't mention Brazil or LATAM."}
+{"id":"canonical|gogolangsoftwareengineerdevelopertoolingandcontainers","eligibility":"no","reason":"\"This team is based in the APAC region, these remote roles can be filled from anywhere in APAC time zones.\" Brazil is excluded."}
+{"id":"tavus|conversationalmodellingresearchengineer","eligibility":"no","reason":"\"Preferred: San Francisco (hybrid) or London. Remote within the U.S. or Europe available for exceptional candidates.\""}
+{"id":"firstwork|seniorsoftwareengineer","eligibility":"no","reason":"Location listed as \"India\"; no mention of remote work from other countries or LATAM hiring."}
+{"id":"firstwork|softwareengineer","eligibility":"no","reason":"Location is listed as \"India\" and remote work isn't mentioned. LATAM is named only as a customer market, not a hiring region."}
+{"id":"reacher|backendsoftwareengineerindia","eligibility":"no","reason":"Title \"Backend Software Engineer - India\" restricts the remote role to India."}
+{"id":"amplitude|staffsoftwareengineerqueryinfrastructure","eligibility":"no","reason":"The location is listed as \"Vancouver\" with no remote option mentioned, and US benefits like a 401(k) point to North American employment."}
+{"id":"extremenetworks|staffswsystemsengineeragenticproductengineer","eligibility":"no","reason":"Location lists only US cities (Seattle, San Jose, Washington DC); no remote or international hiring mentioned for this role."}
+{"id":"truelogic|seniorbackendmlopsengineerrealestatedr","eligibility":"no","reason":"Title is tagged \"(DR)\" and location is Santo Domingo, so it targets the Dominican Republic. Truelogic posts separate listings per country."}
+{"id":"apolloio|staffsoftwareengineerhybridsanfrancisco","eligibility":"no","reason":"Location is \"Hybrid, San Francisco\", which means working on-site part of the time outside Brazil. The pay range is for San Francisco."}
+{"id":"okta|staffbackendengineerpasswordless","eligibility":"no","reason":"Located in Toronto, Canada, tagged #LI-Hybrid, with salary for \"candidates located in Canada\" only."}
+{"id":"palantir|softwareengineernewgradinfrastructure","eligibility":"no","reason":"Based in London, UK. Palantir encourages office work, and even remote roles \"must work from the city and or country in which you are employed.\""}
+{"id":"mongodb|leadplatformengineering","eligibility":"no","reason":"Hybrid role: \"looking to speak to candidates who are based in Gurugram for our hybrid working model.\""}
+{"id":"andela|seniorsolutionsengineer","eligibility":"no","reason":"The location is listed as \"United Kingdom\" and the posting never says the role is remote or open to Brazil or LATAM."}
+{"id":"supabase|orioledbdeploymentengineeramer","eligibility":"yes","reason":"Location is \"Remote, AMER\" (the Americas, which includes Brazil), and the posting says \"We hire globally.\""}
+{"id":"ello|aimlengineer","eligibility":"no","reason":"\"We work in-person out of our San Francisco office\"; sponsorship is only for people who already have US work authorization."}
+{"id":"eloquentai|softwareengineerfrontend","eligibility":"maybe","reason":"Listed as \"Remote\" with an SF HQ and a \"global footprint,\" but the posting doesn't say which countries are allowed."}
+{"id":"alpaca|staffsoftwareengineercorporateactionssecuritymaster","eligibility":"no","reason":"Location says \"Remote - North America and Europe,\" which leaves out Brazil, even though the company mentions having teammates in Brazil."}
+{"id":"eggai|itoperationsleadsoftwareandplatformengineers","eligibility":"no","reason":"The posting says \"REMOTE (EU)\", so the remote work is limited to the EU, which leaves out Brazil."}
+{"id":"discord|seniorsoftwareengineerconsumerrevenue","eligibility":"no","reason":"\"Candidates must reside in or be willing to relocate to the San Francisco Bay Area.\""}
+{"id":"temporal|seniorplatformarchitectuk","eligibility":"no","reason":"Posting states \"You must reside in the United Kingdom, with a preference for London,\" so living in Brazil rules you out."}
+{"id":"octane|seniorsoftwareengineerdecisioning","eligibility":"no","reason":"The posting says \"REMOTE (US only) or NYC/Dallas,\" so it's limited to the US and Brazil is excluded."}
+{"id":"elastic|principalsoftwareengineericicdplatformengineeringproductivity","eligibility":"no","reason":"The location is Ireland and pay is in EUR for \"the relevant labour markets,\" so the role is tied to Ireland and Brazil is not covered."}
+{"id":"taktile|seniorsolutionsengineer","eligibility":"no","reason":"The role is hybrid and requires working from the NYC office at least three days per week."}
+{"id":"liveflow|seniorfullstackengineer","eligibility":"maybe","reason":"The only location given is \"New York, New York\". It doesn't say remote, on-site, or which countries they hire from."}
+{"id":"datadog|seniorappliedscientistbehaviorai","eligibility":"no","reason":"Location is Paris, France, and the posting says \"We operate as a hybrid workplace\" (#LI-Hybrid), so you'd need to be on-site in France."}
+{"id":"wonderly|vpofaiengineering","eligibility":"no","reason":"Location is listed as \"USA/Canada\", which leaves out Brazil."}
+{"id":"flint|agentsengineer","eligibility":"no","reason":"Location San Francisco; team \"work together in-person out of historic Jackson Square\" office. On-site role outside Brazil."}
+{"id":"stripe|staffsoftwareengineerpaymentsintelligence","eligibility":"no","reason":"Location listed as \"New York, Toronto\" and no remote option is mentioned, so it appears tied to US/Canada offices."}
+{"id":"reddit|seniorsoftwareengineercoreplatform","eligibility":"maybe","reason":"The location is San Francisco and the posting is tagged \"#LI-Remote\" with US pay and a 401k, but it names no country requirement."}
+{"id":"fastly|seniorsaasoperationsengineer","eligibility":"no","reason":"Locations limited to San Francisco, New York, Denver offices or \"Remote, US\"; hybrid model and US benefits (401k)."}
+{"id":"elastic|seniorsoftwareengineerprismsecurity","eligibility":"no","reason":"Location is \"Ireland\" and the salary is a EUR range for that market. Nothing says Brazil or LATAM hiring is allowed."}
+{"id":"fieldguide|seniorsoftwareengineerauditfullstack","eligibility":"no","reason":"Location is \"San Francisco, CA or Remote (USA)\", so remote work is limited to the US. It also lists US benefits like a 401k."}
+{"id":"tailor|seniorbilingualsoftwareengineerwestcoastus","eligibility":"no","reason":"The posting says \"Based on the U.S. West Coast (required).\" That rules out working from Brazil."}
+{"id":"coinbase|machinelearningengineer","eligibility":"no","reason":"Location is \"Remote - India\" with INR salary, plus quarterly in-person \"surges\"; Brazil isn't an eligible location."}
+{"id":"deepgram|seniordataintelligenceengineer","eligibility":"no","reason":"Location is \"USA - Remote\", so the role is limited to the United States."}
+{"id":"ebury|seniorapiengineer","eligibility":"no","reason":"Requires hybrid work from the Madrid office: \"4 days in the office, 1 day working from home.\""}
+{"id":"mach9|mlinfrastructureengineer","eligibility":"no","reason":"Location is listed only as \"San Francisco,\" and the posting never mentions remote work, so it appears to be on-site in the US."}
+{"id":"scaleai|softwareengineernewgrad","eligibility":"no","reason":"Location is London, UK; posting says \"reference the job posting's subtitle for where this position will be located\" — not remote from Brazil."}
+{"id":"zipco|softwareengineerforwarddeployedmidseniorlevel","eligibility":"no","reason":"Location is San Francisco with no remote mention; catered office meals and a commuter benefit point to on-site work in the US."}
+{"id":"quora|staffmachinelearningengineerrecommendationsystemsquoraremote","eligibility":"maybe","reason":"\"United States, Ireland, Canada, & 13 other countries\"; eligibility on external list, Brazil not named. PT coordination hours are feasible from UTC-3."}
+{"id":"stripe|machinelearningengineerlink","eligibility":"no","reason":"Location is \"New York City\" with no remote or international hiring mentioned, which implies on-site work in the US."}
+{"id":"chainguard|seniorproductsecurityengineer","eligibility":"no","reason":"Location is \"United States - Remote\" with a USD salary and US benefits. No mention of hiring outside the US."}
+{"id":"stripe|solutionsarchitectai","eligibility":"no","reason":"The location is listed as \"NYC, SF, or Chicago,\" which ties the role to US offices, and nothing in the posting mentions remote work or hiring abroad."}
+{"id":"tailscale|softwareengineeraienablement","eligibility":"no","reason":"Location is \"Remote (United States)\" and only a US pay range is listed, so Brazil isn't included."}
+{"id":"radar|seniorstaffbackendengineermaps","eligibility":"no","reason":"The posting says \"This role will be in our NYC HQ\" and stresses in-person work there. Benefits are US-only (401(k))."}
+{"id":"headway|seniordataengineer","eligibility":"no","reason":"Location is limited to US cities (NYC, San Francisco, Seattle), with US benefits (401K, HSA) and E-Verify, so it's US-only."}
+{"id":"anthropic|partneraccountmanagerainativeboutiquesipartners","eligibility":"no","reason":"The location is listed as \"San Francisco, CA | New York City, NY\", which means US on-site or hybrid work, and the posting doesn't mention remote work from abroad."}
+{"id":"stripe|androidengineerterminalca","eligibility":"no","reason":"Location is \"Toronto, CA\" and the title says \"Terminal - CA\", so the role is tied to Canada. Remote work isn't mentioned."}
+{"id":"stripe|frontendengineerexpansion","eligibility":"maybe","reason":"Location is N/A and the description doesn't say whether the role is remote or which countries are allowed."}
+{"id":"reddit|seniorsoftwareengineerstorage","eligibility":"no","reason":"The location is listed as \"Remote - United States\", so the role is limited to the US and Brazil is not included."}
+{"id":"anthropic|managerofappliedaiarchitecturecommercial","eligibility":"no","reason":"Location is \"San Francisco, CA | New York City, NY\" with no remote option, and it involves customer-site work in the US."}
+{"id":"stripe|backendengineerlink","eligibility":"no","reason":"Location is NYC, Seattle, SF, Toronto, and the role mentions a \"distributed and hybrid team.\" No Brazil or remote option."}
+{"id":"twenty|seniorstaffdevopsengineer","eligibility":"no","reason":"On-site in the Arlington, VA office, and \"U.S. Citizenship Required\" because of government contract requirements."}
+{"id":"sysdig|seniorcustomersolutionsengineerbayarea","eligibility":"no","reason":"The title says \"(Bay Area)\", the location is San Francisco, and pay is given as a U.S. range. The #LI-Remote tag doesn't change that it's a US Bay Area role."}
+{"id":"revampengineeringinc|civildesignengineeriiiiihydraulicshydrology","eligibility":"no","reason":"Location \"United States\" with US-only benefits (401(k), FSA); no remote or international hiring mentioned."}
+{"id":"humaninterest|seniorsoftwareengineer","eligibility":"no","reason":"Location is \"United States, Remote\" and pay is \"based on their location within the U.S.\""}
+{"id":"ashby|staffdesignengineeramericas","eligibility":"maybe","reason":"The title says \"Americas\", but the location lists only \"Remote - US\" and US cities. It's unclear whether Brazil is allowed."}
+{"id":"palantir|softwareengineerinternshipqueryengines","eligibility":"no","reason":"Location is New York, NY; Palantir encourages in-office work, and remote roles must work from the state of employment."}
+{"id":"scaleai|seniorstafffrontieragentsengineer","eligibility":"no","reason":"The location is San Francisco, CA and New York, NY only, and the posting never mentions remote work. That makes it a US on-site role."}
+{"id":"maymobility|seniorsystemsengineerii","eligibility":"no","reason":"The location is \"Ann Arbor, MI - Hybrid\", so the job needs some in-office presence in the US."}
+{"id":"flexport|seniorsystemsengineeridentityandaccess","eligibility":"no","reason":"Located in San Francisco, tagged \"#LI-onsite\", and the salary is a US base range, so it requires on-site presence in the US."}
+{"id":"discord|engineeringmanagerplatformsecurity","eligibility":"no","reason":"\"This position is West Coast (U.S.) based and can be remote\" — the role requires living in the US West Coast."}
+{"id":"anthropic|staffsoftwareengineerinfrastructuredistributedsystems","eligibility":"no","reason":"Hybrid role in SF/NYC/Seattle; \"expect all staff to be in one of our offices at least 25% of the time.\""}
+{"id":"rivet|reliabilityengineer","eligibility":"no","reason":"Candidates must be a \"U.S. Person\", and the role is based in Bellevue, WA or San Jose, CA."}
+{"id":"mem0|aifullstackengineer","eligibility":"no","reason":"\"This is a full-time, onsite role based in San Francisco, CA.\" In-person team, office-first."}
+{"id":"gitlab|staffbackendengineerindia","eligibility":"no","reason":"The posting is titled \"Staff Backend Engineer, India\" with location \"Bangalore, India\", which limits it to India and excludes Brazil."}
+{"id":"circleci|staffsoftwareengineerdeliveryengineering","eligibility":"no","reason":"Location is \"Remote, Canada (EST) OR Remote, UK\"; the posting says it is \"open to candidates based in Europe or in the Eastern time zone.\""}
